@@ -2,12 +2,11 @@
 import glob
 import decimal
 
-# creating a list of all .out files
-allFiles = []
-data = []
-skip = False
 
-# function format decimals
+""" Decimal Format function:
+Decimal Format is used to take all 'X', 'Y' and 'Z' numbers and put them all to a unified decimal format. Can be 
+modified to support any decimal format.
+"""
 
 
 def decimalformat(num):
@@ -16,27 +15,32 @@ def decimalformat(num):
     return d
 
 
-# function to create a fortran file
+""" Formator function:
+Formator takes in a list of string and the file name the list of strings came from. Each string consists of
+10 items which are separated into a new list where each index represents a item. Correct spacing is added
+to each item in the list(going from index 9 to 0) and then joined back together into a string. These string are
+the written to "geo" to create "geo.f". Each time Formator is ran, a new geo file is created to be ran through ReaxFF. 
+"""
 
 
-def formator(newData,fileName):
-    newData.pop(0)
+def formator(new_data, name):
+    new_data.pop(0)
     print("BIOGRF 200")
-    print("DESCRP " + fileName[:-4])
+    print("DESCRP " + name[:-4])
     print("REMARK Created by RensScript")
     print("RUTYPE SINGLE POINT")
 
-    for x in range(len(newData)):
-        strHold = ','.join(newData[x].split())
+    for x in range(len(new_data)):
+        initial_list = ','.join(new_data[x].split())
 
         # Conditional Statement to remove '.' from number (ex. 1. = 1, 12. = 12)
         if x < 9:
-            strHold = strHold[2:]
+            initial_list = initial_list[2:]
         else:
-            strHold = strHold[3:]
+            initial_list = initial_list[3:]
 
         # using ',' as a deliminator and storing into a list
-        build = [x.strip() for x in strHold.split(',')]
+        build = [x.strip() for x in initial_list.split(',')]
 
         # Conditional Statement to shift spaces of numbers < 9 over one space
         if x < 9:
@@ -117,42 +121,45 @@ def formator(newData,fileName):
             build[1] = "     " + build[1]
 
         # forming string from each line, then printing (or writing to a fortran file)
-        strHold2 = "".join(build)
+        formatted_line = "".join(build)
 
-        print(strHold2)
+        print(formatted_line)
 
     print("END" + '\n')
 
 
-# reading in file name using glob library,
-# storing them in temp variable 'fileName'
-# and storing them in list 'allFiles'
+"""Main routine:
+Main routine stores in all .out files from a specified directory and stores them in list 'fileNames'.
+Each .out is read one at a time, parsing line by line to find "Final Geometry Coordinates" and pulling
+out its element symbol and 'XYZ' coordinates. Once all data is found from .out file, it is then passed
+to formator to have correct spacing added so a 'geo' file can be created.
+"""
+
+fileNames = []
+fileData = []
+skipFile = False
+
+# Storing names of all .out files from specified directory
 for file in glob.glob("*.out"):
-    allFiles.append(file)
+    fileNames.append(file)
 
-# printing out all file names(when needed)
-# for x in range(len(allFiles)):
-#    print(allFiles[x])
-
-# opening each .out file stored in 'allFiles' list
-# parsing line by line to find each 'Coordinates in Geometry Cycle' header
-# once found, recording each 'Atom' and its corresponding 'XYZ' coordinates in 'data' list
-for y in range(len(allFiles)):
-    with open(allFiles[y], "r") as openFile:
-        fileName = allFiles[y]
+# reading .out files and parsing out "Final Geometry Coordinates" 'XYZ' and element symbol
+for y in range(len(fileNames)):
+    with open(fileNames[y], "r") as openFile:
+        file_name = fileNames[y]
         for line in openFile:
             if "Calculating Energy Terms for Final Geometry" in line:
-                skip = True  # If "Final Geometry Coordinates" is in file, allows for it to enter "formator" function
+                skipFile = True  # If "Final Geometry Coordinates" in file, allows for it to enter "formator" function
                 line = openFile.__next__()
                 while "<" not in line:
                     line = openFile.__next__()
                     if "<" in line:
                         break
                     else:
-                        data.append(line)
+                        fileData.append(line)
 
-        if skip is True:
-            formator(data, fileName)  # method to generate Fortran file(takes Final Geometry Coordinates & File Name )
-            skip = False
-            data.clear()  # clears list from previous file
+        if skipFile is True:
+            formator(fileData, file_name)  # generate Fortran file(takes Final Geometry Coordinates & File Name )
+            skipFile = False
+            fileData.clear()  # clears list from previous file
 
