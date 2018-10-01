@@ -1,4 +1,10 @@
-# Luke Rens ADF to ReaxFF script
+"""
+    File name: ADFtoReaxFF.py
+    Author: Luke Rens
+    Date created: 9/17/2018
+    Python Version: 3.6.3
+"""
+
 import glob
 import decimal
 
