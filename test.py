@@ -1,9 +1,3 @@
-# testing to see if this works
-
-
-a = "hello"
-print(a)
-
 data = ["HETATM", "1", "C", "-10.795197", "7.536659", "-9.040901"]
 
 for y in range(3, 6):
