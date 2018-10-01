@@ -116,6 +116,7 @@ def formator(newData,fileName):
         else:
             build[1] = "     " + build[1]
 
+        # forming string from each line, then printing (or writing to a fortran file)
         strHold2 = "".join(build)
 
         print(strHold2)
@@ -141,7 +142,7 @@ for y in range(len(allFiles)):
         fileName = allFiles[y]
         for line in openFile:
             if "Calculating Energy Terms for Final Geometry" in line:
-                skip = True
+                skip = True  # If "Final Geometry Coordinates" is in file, allows for it to enter "formator" function
                 line = openFile.__next__()
                 while "<" not in line:
                     line = openFile.__next__()
@@ -151,7 +152,7 @@ for y in range(len(allFiles)):
                         data.append(line)
 
         if skip is True:
-            formator(data,fileName)
+            formator(data, fileName)  # method to generate Fortran file(takes Final Geometry Coordinates & File Name )
             skip = False
-            data.clear()
+            data.clear()  # clears list from previous file
 
