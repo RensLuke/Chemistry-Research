@@ -1,0 +1,107 @@
+CONSTRAINTS in .run files have different names from what you put into the .geo file
+
+TORSION = DIHED
+BOND = DIST
+ANGLE = ANGLE
+
+----------------------
+Multiple constraints for each object in .geo file 
+----------------------
+CONSTRAINTS
+DIST 1 3 1.53
+DIST 6 8 1.53
+END
+
+=
+
+BIOGRF 200
+DESCRP hsph-hs1d                                         
+REMARK Created by ReaxFFinput
+RUTYPE SINGLE POINT
+BOND RESTRAINT   1  13   1.344078 7500.00  2.0000  0.0000000
+BOND RESTRAINT   1  13   1.344078 7500.00  2.0000  0.0000000
+HETATM     1 S                  -2.25401  -0.03985  -0.00996   S   1 1  0.0
+
+---------------------------------------------------------------------------
+WHAT EVERYTHING IN THE .run FILE MEANS
+---------------------------------------------------------------------------
+
+inside .out file
+dont chang first line, tells where files execution is
+Can change the title, donest matter
+
+BASIS = where you get all of the information for the orbital wave functions // .2p = frozen core appriximationt trating the inner electors as a group component (single value)
+
+relativistic effects = different speeds around a single point 
+
+Solvation (sometime nessary)
+Bull Shit a way to have a solvent effect on the molecules
+
+SCF (Self Consistent Field)
+Iterative calculation help minimize energy after movement (At each movement in the gemotry the energy it take at each iteration)
+(Pacing yourself in a marathon comparsion)
+
+XC (exchange corrlation functional)
+calculate electron densitys // BBE REAXFF generally uses this 
+
+GEOMETRY
+Geometry movenets of the molecules
+Smooth = no reandom jumps down
+iterations = amount of movements (more as you need more to have it be more oprimized)
+
+:: = comment out 
+
+symmetry NOSYM (makings sure that you can not defining groups into symmetrtrical structs as they natrurally want to my symmetrical)
+
+
+
+--------------------------------------------------------------------------------
+LOGGING INTO SERVER AND RUNNING A JOB
+--------------------------------------------------------------------------------
+
+connect to 144.96.130.32
+turn X11 forwarding on via SSH tab
+
+login using username and password
+
+adfjobs  (Download xming)
+job > run (with index selected)
+
+
+asking the user for the constraints (being able to select from a list of 3 options and then adding them to the child .run file)
+
+
+--------------------------------------------------------------------------------
+TO CREATE THE CHILDREN .RUN FILES
+--------------------------------------------------------------------------------
+
+STEPS BEFORE
+1. Dr. Barngrover creates the original parent .run file 
+2. Run the .run files through ADF and generate a .out (with the final geometry coordinates)
+
+STEPS ONCE YOU GET A .OUT FILES
+1. Take the parent .run file and create an identical copy
+2. After the GEOMETRY block, add a CONSTRAINTS block
+	2a. Inside the CONSTRAINTS block, take user input with a selection menu of 3 possible constraints and ask them to enter in constraint information 
+	2b. Append those constraints in a format that looks like
+			CONSTRAINTS
+			DIHED . . . . .
+			DIST . . . 
+			ANGLE . . . 
+			END
+3. After the constraint block add all the Atoms that the parents .run file generated(in the parents .out file)
+	3a. Take out the Energy Terms for Final Geometry form the parent .out file
+	3b. Append it after the CONSTRAINTS block
+4. After the ATOM block is added, append closing ending block, example below
+	END
+	END INPUT
+	eor
+
+	
+	
+	
+	
+	
+	
+	
+	
