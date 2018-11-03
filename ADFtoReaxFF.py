@@ -7,6 +7,81 @@
 
 import glob
 import decimal
+import os
+
+# TODO add description for addconstraints method and comment method
+
+
+def addconstraints(out_filename):
+    run_data = []
+    build = []
+    run__file__path = out_filename[:-4] + ".run"
+
+    if os.path.exists(run__file__path):
+        with open(run__file__path, "r") as openFile:
+            for file_line in openFile:
+                if "CONSTRAINTS" in file_line:
+                    while "END" not in file_line:
+                        file_line = openFile.__next__()
+                        if "END" in file_line:
+                            break
+                        elif "::" in file_line:
+                            continue
+                        else:
+                            run_data.append(file_line)
+
+        for x in range(len(run_data)):
+            initial_list = ','.join(run_data[x].split())
+            build = [x.strip() for x in initial_list.split(',')]
+
+            if "DIST" in build[0]:
+                build[0] = 'BOND RESTRAINT'
+                build.extend(("7500.00","2.0000", "0.0000000"))
+            elif "DIHED" in build[0]:
+                build[0] = 'TORSION RESTRAINT'
+                build.extend(("250.00","1.00000", "0.0000"))
+            elif "ANGLE" in build[0]:
+                build[0] = 'ANGLE RESTRAINT'
+                build.extend(("1.00000", "0.0000"))
+
+            # TODO add correct spacing to all constraints
+            if 'BOND RESTRAINT' in build[0]:
+                build[len(build)-1] = build[len(build)-1].rjust(len(build[len(build)-1]) + 2)
+                build[len(build)-2] = build[len(build)-2].rjust(len(build[len(build)-2]) + 2)
+                build[len(build)-3] = build[len(build)-3].rjust(len(build[len(build)-3]) + 1)
+                build[len(build)-4] = decimalformat(build[len(build)-4])
+                build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
+                build[0] = build[0].ljust(len(build[0]) + 1)
+
+                for i in range(len(build)-5, 0, -1):
+                    build[i] = build[i].rjust(len(build[i]) + 2)
+
+            elif 'TORSION RESTRAINT' in build[0]:
+                build[len(build) - 1] = build[len(build) - 1].rjust(len(build[len(build) - 1]) + 2)
+                build[len(build) - 2] = build[len(build) - 2].rjust(len(build[len(build) - 2]) + 2)
+                build[len(build) - 3] = build[len(build) - 3].rjust(len(build[len(build) - 3]) + 1)
+                build[len(build) - 4] = decimalformat(build[len(build) - 4])
+                build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
+                build[0] = build[0].ljust(len(build[0]) + 1)
+
+                for i in range(len(build) - 5, 0, -1):
+                    build[i] = build[i].rjust(len(build[i]) + 2)
+
+            elif 'ANGLE RESTRAINT' in build[0]:
+                build[len(build) - 1] = build[len(build) - 1].rjust(len(build[len(build) - 1]) + 2)
+                build[len(build) - 2] = build[len(build) - 2].rjust(len(build[len(build) - 2]) + 2)
+                build[len(build) - 3] = build[len(build) - 3].rjust(len(build[len(build) - 3]) + 1)
+                build[len(build) - 4] = decimalformat(build[len(build) - 4])
+                build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
+                build[0] = build[0].ljust(len(build[0]) + 1)
+
+                for i in range(len(build) - 5, 0, -1):
+                    build[i] = build[i].rjust(len(build[i]) + 2)
+
+            formatted_line = "".join(build)
+            print(formatted_line)
+    run_data.clear()
+    build.clear()
 
 
 """ Decimal Format function:
@@ -28,16 +103,23 @@ to each item in the list(going from index 9 to 0) and then joined back together 
 the written to "geo" to create "geo.f". Each time Formator is ran, a new geo file is created to be ran through ReaxFF. 
 """
 
+# TODO if you have over 100 elements in index 2 spacing messes up as it is only deigned to hold 99 elements
 
-def formator(new_data, name):
-    new_data.pop(0)
+
+def formator(out_file_data, out_filename):
+    out_file_data.pop(0)
+
+    # Assigning header to each file going into geo file
     print("BIOGRF 200")
-    print("DESCRP " + name[:-4])
+    print("DESCRP " + out_filename[out_filename.find("\\")+1:-4])
     print("REMARK Created by RensScript")
     print("RUTYPE SINGLE POINT")
+    # if .out's corresponding .run file has constraints inside, add them
+    addconstraints(out_filename)
 
-    for x in range(len(new_data)):
-        initial_list = ','.join(new_data[x].split())
+    # for loop iterates through 'out_file_data" which each item is a X,Y,Z coordinate and its element
+    for x in range(len(out_file_data)):
+        initial_list = ','.join(out_file_data[x].split())
 
         # Conditional Statement to remove '.' from number (ex. 1. = 1, 12. = 12)
         if x < 9:
@@ -141,31 +223,38 @@ out its element symbol and 'XYZ' coordinates. Once all data is found from .out f
 to formator to have correct spacing added so a 'geo' file can be created.
 """
 
-fileNames = []
-fileData = []
-skipFile = False
+# Variables for .out files
+All_OutFile_Names = []
+XYZ_Coordinates = []
+skip_if_no_Coords = False
+
+
+# TODO ask Dr. Ivancic for help on a better way to deal with file directories
+
+path = "C:/Users/Luke/PycharmProjects/ChemistryScripts/ohmstedelv"
 
 # Storing names of all .out files from specified directory
-for file in glob.glob("*.out"):
-    fileNames.append(file)
+for file in glob.glob(os.path.join(path, '*.out')):
+    All_OutFile_Names.append(file)
 
 # reading .out files and parsing out "Final Geometry Coordinates" 'XYZ' and element symbol
-for y in range(len(fileNames)):
-    with open(fileNames[y], "r") as openFile:
-        file_name = fileNames[y]
-        for line in openFile:
+for y in range(len(All_OutFile_Names)):
+    with open(All_OutFile_Names[y], "r") as openOut:
+        OutFile_Names = All_OutFile_Names[y]
+        for line in openOut:
             if "Calculating Energy Terms for Final Geometry" in line:
-                skipFile = True  # If "Final Geometry Coordinates" in file, allows for it to enter "formator" function
-                line = openFile.__next__()
+                skip_if_no_Coords = True  # If "Final Geometry Coordinates" in file, allows for it to enter "formator" function
+                line = openOut.__next__()
                 while "<" not in line:
-                    line = openFile.__next__()
+                    line = openOut.__next__()
                     if "<" in line:
                         break
                     else:
-                        fileData.append(line)
+                        XYZ_Coordinates.append(line)
 
-        if skipFile is True:
-            formator(fileData, file_name)  # generate Fortran file(takes Final Geometry Coordinates & File Name )
-            skipFile = False
-            fileData.clear()  # clears list from previous file
+        # If final coordinates are found, format them
+        if skip_if_no_Coords is True:
+            formator(XYZ_Coordinates, OutFile_Names)  # generate Fortran file(takes Final Geometry Coordinates & File Name )
+            skip_if_no_Coords = False
+            XYZ_Coordinates.clear()  # clears list from previous file
 
