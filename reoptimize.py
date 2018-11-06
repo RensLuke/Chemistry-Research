@@ -23,24 +23,35 @@ def insertconstraints(ATOM_INDEX):
 
     counter = 0
     while counter != int(number_of_constraints):
-        selection = input("What kind of constraints? [1] DIHED [2] DIST [3] ANGLE ")
-        if int(selection) == 1:  # DIHED
-            print("Enter constrain information: ")
-            DIHED = "1 3 1.53"
-            newoptimizeddata.append("DIHED " + DIHED)
-            counter = counter + 1
-        elif int(selection) == 2:  # DIST
-            print("Enter constrain information: ")
-            DIST = "1 3 1.53"
-            newoptimizeddata.append("DIST " + DIST)
-            counter = counter + 1
-        elif int(selection) == 3:  # ANGLE
-            print("Enter constrain information: ")
-            ANGLE = "1 3 1.53"
-            newoptimizeddata.append("ANGLE " + ANGLE)
-            counter = counter + 1
+        selection = input("What kind of constraint? [1] DIHED [2] DIST [3] ANGLE ")
+        # DIHED
+        if int(selection) == 1:
+            interselection = input("Enter constrain information or press [q] to go back to selection menu: ")
+            if interselection == 'q':
+                continue
+            else:
+                newoptimizeddata.append("DIHED " + interselection)
+                counter = counter + 1
 
-    newoptimizeddata.insert(0,"CONSTRAINTS")
+        # DIST
+        elif int(selection) == 2:
+            interselection = input("Enter constrain information or press [q] to go back to selection menu: ")
+            if interselection == 'q':
+                continue
+            else:
+                newoptimizeddata.append("DIST " + interselection)
+                counter = counter + 1
+
+        # ANGLE
+        elif int(selection) == 3:
+            interselection = input("Enter constrain information or press [q] to go back to selection menu: ")
+            if interselection == 'q':
+                continue
+            else:
+                newoptimizeddata.append("ANGLE " + interselection)
+                counter = counter + 1
+
+    newoptimizeddata.insert(0, "CONSTRAINTS")
     newoptimizeddata.append("END")
 
     for i in range(len(newoptimizeddata)):
