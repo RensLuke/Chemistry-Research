@@ -2,6 +2,7 @@
     File name: ADFtoReaxFF.py
     Author: Luke Rens
     Date created: 9/17/2018
+    Description: Creates a geo file from an optimized output file (.out) and constraints from its corresponding (.run) file
     Python Version: 3.6.3
 """
 
@@ -9,13 +10,13 @@ import glob
 import decimal
 import os
 
-# TODO add description for addconstraints method and comment method
+# TODO add description for addconstraints method and comments
 
 
 def addconstraints(out_filename):
     run_data = []
     build = []
-    
+
     run__file__path = out_filename[:-4] + ".run"
 
     if os.path.exists(run__file__path):
