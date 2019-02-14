@@ -9,14 +9,14 @@
 import glob
 import decimal
 import os
-
+import sys
 # TODO add description for addconstraints method and comments
 
 
 def addconstraints(out_filename):
     run_data = []
     build = []
-    print("test")
+
     run__file__path = out_filename[:-4] + ".run"
 
     if os.path.exists(run__file__path):
@@ -35,13 +35,12 @@ def addconstraints(out_filename):
         for x in range(len(run_data)):
             initial_list = ','.join(run_data[x].split())
             build = [x.strip() for x in initial_list.split(',')]
-
             if "DIST" in build[0]:
                 build[0] = 'BOND RESTRAINT'
-                build.extend(("7500.00","2.0000", "0.0000000"))
+                build.extend(("7500.00", "2.0000", "0.0000000"))
             elif "DIHED" in build[0]:
                 build[0] = 'TORSION RESTRAINT'
-                build.extend(("250.00","1.00000", "0.0000"))
+                build.extend(("250.00", "1.00000", "0.0000"))
             elif "ANGLE" in build[0]:
                 build[0] = 'ANGLE RESTRAINT'
                 build.extend(("1.00000", "0.0000"))
@@ -53,10 +52,12 @@ def addconstraints(out_filename):
                 build[len(build)-3] = build[len(build)-3].rjust(len(build[len(build)-3]) + 1)
                 build[len(build)-4] = decimalformat(build[len(build)-4])
                 build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
-                build[0] = build[0].ljust(len(build[0]) + 1)
 
                 for i in range(len(build)-5, 0, -1):
-                    build[i] = build[i].rjust(len(build[i]) + 2)
+                    if len(build[i]) == 1:
+                        build[i] = build[i].rjust(len(build[i]) + 3)
+                    elif len(build[i]) >= 2:
+                        build[i] = build[i].rjust(len(build[i]) + 2)
 
             elif 'TORSION RESTRAINT' in build[0]:
                 build[len(build) - 1] = build[len(build) - 1].rjust(len(build[len(build) - 1]) + 2)
@@ -66,8 +67,11 @@ def addconstraints(out_filename):
                 build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
                 build[0] = build[0].ljust(len(build[0]) + 1)
 
-                for i in range(len(build) - 5, 0, -1):
-                    build[i] = build[i].rjust(len(build[i]) + 2)
+                for i in range(len(build)-5, 0, -1):
+                    if len(build[i]) == 1:
+                        build[i] = build[i].rjust(len(build[i]) + 3)
+                    elif len(build[i]) >= 2:
+                        build[i] = build[i].rjust(len(build[i]) + 2)
 
             elif 'ANGLE RESTRAINT' in build[0]:
                 build[len(build) - 1] = build[len(build) - 1].rjust(len(build[len(build) - 1]) + 2)
@@ -77,13 +81,17 @@ def addconstraints(out_filename):
                 build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
                 build[0] = build[0].ljust(len(build[0]) + 1)
 
-                for i in range(len(build) - 5, 0, -1):
-                    build[i] = build[i].rjust(len(build[i]) + 2)
+                for i in range(len(build)-5, 0, -1):
+                    if len(build[i]) == 1:
+                        build[i] = build[i].rjust(len(build[i]) + 3)
+                    elif len(build[i]) >= 2:
+                        build[i] = build[i].rjust(len(build[i]) + 2)
 
             formatted_line = "".join(build)
             print(formatted_line)
     run_data.clear()
     build.clear()
+    sys.exit()
 
 
 """ Decimal Format function:
