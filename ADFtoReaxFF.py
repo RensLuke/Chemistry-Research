@@ -16,7 +16,7 @@ import os
 def addconstraints(out_filename):
     run_data = []
     build = []
-
+    print("test")
     run__file__path = out_filename[:-4] + ".run"
 
     if os.path.exists(run__file__path):
