@@ -216,7 +216,7 @@ def formator(out_file_data, out_filename):
         # forming string from each line, then printing (or writing to a fortran file)
         formatted_line = "".join(build)
 
-        print(formatted_line)
+        #print(formatted_line)
 
     print("END" + '\n')
 
