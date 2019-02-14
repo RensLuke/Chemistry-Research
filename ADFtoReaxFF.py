@@ -122,12 +122,13 @@ def formator(out_file_data, out_filename):
     # for loop iterates through 'out_file_data" which each item is a X,Y,Z coordinate and its element
     for x in range(len(out_file_data)):
         initial_list = ','.join(out_file_data[x].split())
-
         # Conditional Statement to remove '.' from number (ex. 1. = 1, 12. = 12)
-        if x < 9:
+        if x <= 8:
             initial_list = initial_list[2:]
-        else:
+        elif x >= 9 and x < 99:
             initial_list = initial_list[3:]
+        else:
+            initial_list = initial_list[4:]
 
         # using ',' as a deliminator and storing into a list
         build = [x.strip() for x in initial_list.split(',')]
@@ -207,8 +208,10 @@ def formator(out_file_data, out_filename):
         # Spacing for number & conditional testing for if its a > 9 or < 9
         if len(build[1]) == 2:
             build[1] = "    " + build[1]
-        else:
+        elif len(build[1]) == 1:
             build[1] = "     " + build[1]
+        elif len(build[1]) == 3:
+            build[1] = "   " + build[1]
 
         # forming string from each line, then printing (or writing to a fortran file)
         formatted_line = "".join(build)

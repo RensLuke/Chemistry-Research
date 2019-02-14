@@ -8,6 +8,7 @@
 
 import os
 
+# Global Variables
 optimizedData = []
 
 
@@ -51,14 +52,16 @@ def insertconstraints(ATOM_INDEX):
                 newoptimizeddata.append("ANGLE " + interselection)
                 counter = counter + 1
 
-    newoptimizeddata.insert(0, "CONSTRAINTS")
-    newoptimizeddata.append("END")
+    # conditional statement so file is only manipulated if user enters a constraint
+    if int(number_of_constraints) > 0:
+        newoptimizeddata.insert(0, "CONSTRAINTS")
+        newoptimizeddata.append("END")
 
-    for i in range(len(newoptimizeddata)):
-        if i == 0:
-            optimizedData.insert(ATOM_INDEX - 2, newoptimizeddata[len(newoptimizeddata) - 1 - i])
-        else:
-            optimizedData.insert(ATOM_INDEX - 2, newoptimizeddata[len(newoptimizeddata) - 1 - i] + '\n')
+        for i in range(len(newoptimizeddata)):
+            if i == 0:
+                optimizedData.insert(ATOM_INDEX - 2, newoptimizeddata[len(newoptimizeddata) - 1 - i])
+            else:
+                optimizedData.insert(ATOM_INDEX - 2, newoptimizeddata[len(newoptimizeddata) - 1 - i] + '\n')
 
 
 # optimizedData = input("Please select file you would like to optimize ")
