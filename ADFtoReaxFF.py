@@ -9,11 +9,11 @@
 import glob
 import decimal
 import os
-
+import sys
 # TODO add description for addconstraints method and comments
 
 
-def addconstraints(out_filename):
+def addconstraints(out_filename, output_path_con, writer):
     run_data = []
     build = []
 
@@ -29,19 +29,20 @@ def addconstraints(out_filename):
                             break
                         elif "::" in file_line:
                             continue
+                        elif "Block b1" in file_line:
+                            continue
                         else:
                             run_data.append(file_line)
 
         for x in range(len(run_data)):
             initial_list = ','.join(run_data[x].split())
             build = [x.strip() for x in initial_list.split(',')]
-
             if "DIST" in build[0]:
                 build[0] = 'BOND RESTRAINT'
-                build.extend(("7500.00","2.0000", "0.0000000"))
+                build.extend(("7500.00", "2.0000", "0.0000000"))
             elif "DIHED" in build[0]:
                 build[0] = 'TORSION RESTRAINT'
-                build.extend(("250.00","1.00000", "0.0000"))
+                build.extend(("250.00", "1.00000", "0.0000"))
             elif "ANGLE" in build[0]:
                 build[0] = 'ANGLE RESTRAINT'
                 build.extend(("1.00000", "0.0000"))
@@ -53,10 +54,12 @@ def addconstraints(out_filename):
                 build[len(build)-3] = build[len(build)-3].rjust(len(build[len(build)-3]) + 1)
                 build[len(build)-4] = decimalformat(build[len(build)-4])
                 build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
-                build[0] = build[0].ljust(len(build[0]) + 1)
 
                 for i in range(len(build)-5, 0, -1):
-                    build[i] = build[i].rjust(len(build[i]) + 2)
+                    if len(build[i]) == 1:
+                        build[i] = build[i].rjust(len(build[i]) + 3)
+                    elif len(build[i]) >= 2:
+                        build[i] = build[i].rjust(len(build[i]) + 2)
 
             elif 'TORSION RESTRAINT' in build[0]:
                 build[len(build) - 1] = build[len(build) - 1].rjust(len(build[len(build) - 1]) + 2)
@@ -66,8 +69,11 @@ def addconstraints(out_filename):
                 build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
                 build[0] = build[0].ljust(len(build[0]) + 1)
 
-                for i in range(len(build) - 5, 0, -1):
-                    build[i] = build[i].rjust(len(build[i]) + 2)
+                for i in range(len(build)-5, 0, -1):
+                    if len(build[i]) == 1:
+                        build[i] = build[i].rjust(len(build[i]) + 3)
+                    elif len(build[i]) >= 2:
+                        build[i] = build[i].rjust(len(build[i]) + 2)
 
             elif 'ANGLE RESTRAINT' in build[0]:
                 build[len(build) - 1] = build[len(build) - 1].rjust(len(build[len(build) - 1]) + 2)
@@ -77,13 +83,19 @@ def addconstraints(out_filename):
                 build[len(build) - 4] = build[len(build) - 4].rjust(len(build[len(build) - 4]) + 3)
                 build[0] = build[0].ljust(len(build[0]) + 1)
 
-                for i in range(len(build) - 5, 0, -1):
-                    build[i] = build[i].rjust(len(build[i]) + 2)
+                for i in range(len(build)-5, 0, -1):
+                    if len(build[i]) == 1:
+                        build[i] = build[i].rjust(len(build[i]) + 3)
+                    elif len(build[i]) >= 2:
+                        build[i] = build[i].rjust(len(build[i]) + 2)
 
             formatted_line = "".join(build)
-            print(formatted_line)
+
+            writer.write(formatted_line + "\n")
+            # print(formatted_line)
     run_data.clear()
     build.clear()
+
 
 
 """ Decimal Format function:
@@ -108,117 +120,130 @@ the written to "geo" to create "geo.f". Each time Formator is ran, a new geo fil
 # TODO if you have over 100 elements in index 2 spacing messes up as it is only deigned to hold 99 elements
 
 
-def formator(out_file_data, out_filename):
+def formator(out_file_data, out_filename, output_path_format):
     out_file_data.pop(0)
+    with open(output_path_format + '/geo.txt', 'a+') as writer:
+        # Assigning header to each file going into geo file
+        # print("BIOGRF 200")
+        writer.write("BIOGRF 200" + "\n")
 
-    # Assigning header to each file going into geo file
-    print("BIOGRF 200")
-    print("DESCRP " + out_filename[out_filename.find("\\")+1:-4])
-    print("REMARK Created by RensScript")
-    print("RUTYPE SINGLE POINT")
-    # if .out's corresponding .run file has constraints inside, add them
-    addconstraints(out_filename)
+        # print("DESCRP " + out_filename[out_filename.find("\\")+1:-4])
+        descrp_name = out_filename.split('/')
 
-    # for loop iterates through 'out_file_data" which each item is a X,Y,Z coordinate and its element
-    for x in range(len(out_file_data)):
-        initial_list = ','.join(out_file_data[x].split())
-        # Conditional Statement to remove '.' from number (ex. 1. = 1, 12. = 12)
-        if x <= 8:
-            initial_list = initial_list[2:]
-        elif x >= 9 and x < 99:
-            initial_list = initial_list[3:]
-        else:
-            initial_list = initial_list[4:]
+        writer.write("DESCRP " + descrp_name[len(descrp_name) - 1][:-4] + "\n")
 
-        # using ',' as a deliminator and storing into a list
-        build = [x.strip() for x in initial_list.split(',')]
+        # print("REMARK Created by RensScript")
+        writer.write("REMARK Created by RensScript" + "\n")
 
-        # Conditional Statement to shift spaces of numbers < 9 over one space
-        if x < 9:
-            build.insert(0, "HETATM")
-        else:
-            build.insert(0, "HETATM")
+        # print("RUTYPE SINGLE POINT")
+        writer.write("RUTYPE SINGLE POINT" + "\n")
 
-        # Inserting list number and 1 & 0 in the back of the string
-        build.insert(1, str(x + 1))
-        build.insert(6,build[2])
-        build.insert(7, '1')
-        build.insert(8, '1')
+        # if .out's corresponding .run file has constraints inside, add them
+        addconstraints(out_filename, output_path, writer)
 
-        build.insert(9, '0.0')
+        # for loop iterates through 'out_file_data" which each item is a X,Y,Z coordinate and its element
+        for x in range(len(out_file_data)):
+            initial_list = ','.join(out_file_data[x].split())
+            # Conditional Statement to remove '.' from number (ex. 1. = 1, 12. = 12)
+            if x <= 8:
+                initial_list = initial_list[2:]
+            elif x >= 9 and x < 99:
+                initial_list = initial_list[3:]
+            else:
+                initial_list = initial_list[4:]
 
-        build[9] = build[9].rjust(len(build[9]) + 2)  # Spacing for 0.0
-        build[8] = build[8].rjust(len(build[8]) + 1)   # Spacing for 1
+            # using ',' as a deliminator and storing into a list
+            build = [x.strip() for x in initial_list.split(',')]
 
-        # Spacing for last 1 & conditional testing for if its a 1 or 2 letter element
-        if len(build[6]) == 2:
-            build[7] = build[7].rjust(len(build[7]) + 2)
-        else:
-            build[7] = build[7].rjust(len(build[7]) + 3)
+            # Conditional Statement to shift spaces of numbers < 9 over one space
+            if x < 9:
+                build.insert(0, "HETATM")
+            else:
+                build.insert(0, "HETATM")
 
-        build[6] = build[6].rjust(len(build[6]) + 3)  # Spacing for last element
+            # Inserting list number and 1 & 0 in the back of the string
+            build.insert(1, str(x + 1))
+            build.insert(6, build[2])
+            build.insert(7, '1')
+            build.insert(8, '1')
 
-        # formatting all "X,Y,Z" to 6 decimal places
-        for y in range(3, 6):
-            build[y] = decimalformat(build[y])
+            build.insert(9, '0.0')
 
-        # adjust spacing for "Y,Z"
-        for y in range(4, 6):
-            if float(build[y]) < 10 and "-" not in build[y]:
-                build[y] = build[y].rjust(len(build[y]) + 3)
-            elif float(build[y]) > 10 and "-" not in build[y]:
-                build[y] = build[y].rjust(len(build[y]) + 2)
-            elif float(build[y]) > -10 and "-" in build[y]:
-                build[y] = build[y].rjust(len(build[y]) + 2)
-            elif float(build[y]) < -10 and "-" in build[y]:
-                build[y] = build[y].rjust(len(build[y]) + 1)
+            build[9] = build[9].rjust(len(build[9]) + 2)  # Spacing for 0.0
+            build[8] = build[8].rjust(len(build[8]) + 1)   # Spacing for 1
 
-        # adjust spacing for "X"
-        if float(build[3]) < 10 and "-" not in build[3] and len(
-                build[2]) == 1:  # numbers 1-9 (without '-') and element = 1 char
-            build[3] = build[3].rjust(len(build[3]) + 19)
-        elif float(build[3]) > 10 and "-" not in build[3] and len(
-                build[2]) == 1:  # numbers 1-infinity (without '-') and element = 1 char
-            build[3] = build[3].rjust(len(build[3]) + 18)
-        elif float(build[3]) > -10 and "-" in build[3] and len(
-                build[2]) == 1:  # numbers 1-9 (with '-') and element = 1 char
-            build[3] = build[3].rjust(len(build[3]) + 18)
-        elif float(build[3]) < -10 and "-" in build[3] and len(
-                build[2]) == 1:  # numbers 10-infinity (with '-') and element = 1 char
-            build[3] = build[3].rjust(len(build[3]) + 17)
-        elif float(build[3]) < 10 and "-" not in build[3] and len(
-                build[2]) == 2:  # numbers 1-9 (without '-') and element = 2 char
-            build[3] = build[3].rjust(len(build[3]) + 18)
-        elif float(build[3]) > 10 and "-" not in build[3] and len(
-                build[2]) == 2:  # numbers 1-infinity (without '-') and element = 2 char
-            build[3] = build[3].rjust(len(build[3]) + 17)
-        elif float(build[3]) > -10 and "-" in build[3] and len(
-                build[2]) == 2:  # numbers 1-9 (with '-') and element = 2 char
-            build[3] = build[3].rjust(len(build[3]) + 17)
-        elif float(build[3]) < -10 and "-" in build[3] and len(
-                build[2]) == 2:  # numbers 10-infinity (with '-') and element = 2 char
-            build[3] = build[3].rjust(len(build[3]) + 16)
+            # Spacing for last 1 & conditional testing for if its a 1 or 2 letter element
+            if len(build[6]) == 2:
+                build[7] = build[7].rjust(len(build[7]) + 2)
+            else:
+                build[7] = build[7].rjust(len(build[7]) + 3)
 
-        # Spacing for first element & conditional testing for if its a 1 or 2 letter element
-        if len(build[2]) == 2:
-            build[2] = " " + build[2]
-        else:
-            build[2] = " " + build[2]
+            build[6] = build[6].rjust(len(build[6]) + 3)  # Spacing for last element
 
-        # Spacing for number & conditional testing for if its a > 9 or < 9
-        if len(build[1]) == 2:
-            build[1] = "    " + build[1]
-        elif len(build[1]) == 1:
-            build[1] = "     " + build[1]
-        elif len(build[1]) == 3:
-            build[1] = "   " + build[1]
+            # formatting all "X,Y,Z" to 6 decimal places
+            for y in range(3, 6):
+                build[y] = decimalformat(build[y])
 
-        # forming string from each line, then printing (or writing to a fortran file)
-        formatted_line = "".join(build)
+            # adjust spacing for "Y,Z"
+            for y in range(4, 6):
+                if float(build[y]) < 10 and "-" not in build[y]:
+                    build[y] = build[y].rjust(len(build[y]) + 3)
+                elif float(build[y]) > 10 and "-" not in build[y]:
+                    build[y] = build[y].rjust(len(build[y]) + 2)
+                elif float(build[y]) > -10 and "-" in build[y]:
+                    build[y] = build[y].rjust(len(build[y]) + 2)
+                elif float(build[y]) < -10 and "-" in build[y]:
+                    build[y] = build[y].rjust(len(build[y]) + 1)
 
-        print(formatted_line)
+            # adjust spacing for "X"
+            if float(build[3]) < 10 and "-" not in build[3] and len(
+                    build[2]) == 1:  # numbers 1-9 (without '-') and element = 1 char
+                build[3] = build[3].rjust(len(build[3]) + 19)
+            elif float(build[3]) > 10 and "-" not in build[3] and len(
+                    build[2]) == 1:  # numbers 1-infinity (without '-') and element = 1 char
+                build[3] = build[3].rjust(len(build[3]) + 18)
+            elif float(build[3]) > -10 and "-" in build[3] and len(
+                    build[2]) == 1:  # numbers 1-9 (with '-') and element = 1 char
+                build[3] = build[3].rjust(len(build[3]) + 18)
+            elif float(build[3]) < -10 and "-" in build[3] and len(
+                    build[2]) == 1:  # numbers 10-infinity (with '-') and element = 1 char
+                build[3] = build[3].rjust(len(build[3]) + 17)
+            elif float(build[3]) < 10 and "-" not in build[3] and len(
+                    build[2]) == 2:  # numbers 1-9 (without '-') and element = 2 char
+                build[3] = build[3].rjust(len(build[3]) + 18)
+            elif float(build[3]) > 10 and "-" not in build[3] and len(
+                    build[2]) == 2:  # numbers 1-infinity (without '-') and element = 2 char
+                build[3] = build[3].rjust(len(build[3]) + 17)
+            elif float(build[3]) > -10 and "-" in build[3] and len(
+                    build[2]) == 2:  # numbers 1-9 (with '-') and element = 2 char
+                build[3] = build[3].rjust(len(build[3]) + 17)
+            elif float(build[3]) < -10 and "-" in build[3] and len(
+                    build[2]) == 2:  # numbers 10-infinity (with '-') and element = 2 char
+                build[3] = build[3].rjust(len(build[3]) + 16)
 
-    print("END" + '\n')
+            # Spacing for first element & conditional testing for if its a 1 or 2 letter element
+            if len(build[2]) == 2:
+                build[2] = " " + build[2]
+            else:
+                build[2] = " " + build[2]
+
+            # Spacing for number & conditional testing for if its a > 9 or < 9
+            if len(build[1]) == 2:
+                build[1] = "    " + build[1]
+            elif len(build[1]) == 1:
+                build[1] = "     " + build[1]
+            elif len(build[1]) == 3:
+                build[1] = "   " + build[1]
+
+            # forming string from each line, then printing (or writing to a fortran file)
+            formatted_line = "".join(build)
+
+            # print(formatted_line)
+            writer.write(formatted_line + "\n")
+
+        writer.write("END" + '\n')
+        writer.write('\n')
+        # print("END" + '\n')
 
 
 """Main routine:
@@ -232,14 +257,41 @@ to formator to have correct spacing added so a 'geo' file can be created.
 All_OutFile_Names = []
 XYZ_Coordinates = []
 skip_if_no_Coords = False
-
+input_path = ""
+output_path = ""
 
 # TODO ask Dr. Ivancic for help on a better way to deal with file directories
 
-path = "C:/Users/Luke/PycharmProjects/ChemistryScripts/ohmstedelv"
+# path = "C:/Users/rensld/PycharmProjects/ChemistryScripts/ohmstedelv"
+while True:
+    input_path = input("Please enter input directory path: ")
+    # input_path = "ohmstedelv"
+    exists = os.path.isdir(input_path)
+    if exists:
+        print("Correct path")
+        break
+    else:
+        print("Invalid file path")
+
+while True:
+    output_path_hold = input("Please enter output directory path: ")
+    # output_path_hold = "output"
+    exists = os.path.isdir(output_path_hold)
+    if exists:
+        print("Correct path")
+        path_split = input_path.split('/')
+        output_path = output_path_hold + "/" + path_split[len(path_split) - 1]
+        try:
+            os.mkdir(output_path)
+        except FileExistsError:
+            print("path already exists")
+            break
+        break
+    else:
+        print("Invalid file path")
 
 # Storing names of all .out files from specified directory
-for file in glob.glob(os.path.join(path, '*.out')):
+for file in glob.glob(os.path.join(input_path, '*.out')):
     All_OutFile_Names.append(file)
 
 # reading .out files and parsing out "Final Geometry Coordinates" 'XYZ' and element symbol
@@ -259,7 +311,7 @@ for y in range(len(All_OutFile_Names)):
 
         # If final coordinates are found, format them
         if skip_if_no_Coords is True:
-            formator(XYZ_Coordinates, OutFile_Names)  # generate Fortran file(takes Final Geometry Coordinates & File Name )
+            formator(XYZ_Coordinates, OutFile_Names, output_path)  # generate Fortran file(takes Final Geometry Coordinates & File Name )
             skip_if_no_Coords = False
             XYZ_Coordinates.clear()  # clears list from previous file
 
